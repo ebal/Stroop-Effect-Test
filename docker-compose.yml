@@ -1,0 +1,25 @@
+services:
+  # Always-on service: plain nginx serving the pre-built ./dist folder.
+  # No custom image, no build step — starts/stops instantly.
+  stroop:
+    image: nginx:alpine
+    container_name: stroop-test
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+    ports:
+      - "8888:80"
+    restart: unless-stopped
+
+  # On-demand only: compiles the Vue app into ./dist. Not started by `up`,
+  # only via: docker compose --profile build run --rm builder
+  builder:
+    image: node:20-alpine
+    container_name: stroop-builder
+    working_dir: /app
+    volumes:
+      - .:/app
+    user: "374:374"
+    environment:
+      - npm_config_cache=/app/.npm-cache
+    command: sh -c "npm install && npm run build"
+    profiles: ["build"]
