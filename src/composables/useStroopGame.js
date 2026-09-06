@@ -21,6 +21,7 @@ export function useStroopGame() {
   let goTimeoutId = null
   let gapTimeoutId = null
   let trialStartTime = 0
+  let hiddenAt = 0
   let congruentRatio = 0.25
   let mode = 'color'
 
@@ -114,6 +115,20 @@ export function useStroopGame() {
     }, INTER_TRIAL_GAP_MS)
   }
 
+  // Backgrounding the tab doesn't pause performance.now(), so without this a
+  // trial answered after returning from background would measure the entire
+  // hidden wall-clock gap as reaction time. Shifting the anchor forward by
+  // the hidden duration excludes it without needing any new paused UI.
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      hiddenAt = performance.now()
+    } else if (hiddenAt) {
+      const gap = performance.now() - hiddenAt
+      if (status.value === 'playing') trialStartTime += gap
+      hiddenAt = 0
+    }
+  }
+
   function finish() {
     clearInterval(timerId)
     clearTimeout(gapTimeoutId)
@@ -179,5 +194,6 @@ export function useStroopGame() {
     start,
     answer,
     reset,
+    handleVisibilityChange,
   }
 }

@@ -60,9 +60,11 @@ const progressPct = computed(() =>
 
 onMounted(() => {
   game.start(DIFFICULTIES[props.difficultyKey], props.mode)
+  document.addEventListener('visibilitychange', game.handleVisibilityChange)
 })
 
 onUnmounted(() => {
+  document.removeEventListener('visibilitychange', game.handleVisibilityChange)
   game.reset()
 })
 

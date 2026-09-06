@@ -160,7 +160,9 @@ export function useSequenceMemory(onChange) {
     correctTaps.value = saved.correctTaps
     mistakes.value = saved.mistakes
     tapLog.value = saved.tapTimes
-    highestLevel.value = Math.max(saved.level, 1)
+    // saved.level is the level currently being attempted, not the last one
+    // actually completed — highestLevel should reflect the latter.
+    highestLevel.value = Math.max(saved.level - 1, 1)
     longestSequence.value = Math.max(saved.sequence.length - 1, 0)
     elapsedTime.value = saved.elapsedTime
     startedAt.value = saved.startedAt

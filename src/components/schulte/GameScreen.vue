@@ -47,9 +47,11 @@ const difficulty = computed(() =>
 
 onMounted(() => {
   game.start(difficulty.value)
+  document.addEventListener('visibilitychange', game.handleVisibilityChange)
 })
 
 onUnmounted(() => {
+  document.removeEventListener('visibilitychange', game.handleVisibilityChange)
   game.reset()
 })
 

@@ -12,7 +12,7 @@ export default defineConfig({
       manifest: {
         name: 'Cognitive Test Suite',
         short_name: 'Cognitive Tests',
-        description: 'Stroop Effect Test, Schulte Tables, and Number N-Back — offline-capable.',
+        description: 'Six offline-capable cognitive tests: Stroop Effect, Schulte Tables, Number N-Back, Sudoku, SET, and Sequence Memory.',
         start_url: '/',
         scope: '/',
         display: 'standalone',

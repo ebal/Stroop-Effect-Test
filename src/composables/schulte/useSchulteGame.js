@@ -37,6 +37,7 @@ export function useSchulteGame() {
   let totalCells = 0
   let roundStartTime = 0
   let lastCorrectTime = 0
+  let hiddenAt = 0
   let countdownId = null
   let goTimeoutId = null
   let elapsedId = null
@@ -107,6 +108,22 @@ export function useSchulteGame() {
     }
   }
 
+  // Backgrounding the tab doesn't pause performance.now(), so without this,
+  // completionTime (the primary metric — anchored to roundStartTime) and
+  // whichever interval spans the hidden period would silently absorb the
+  // entire hidden wall-clock gap. Shifting both anchors forward excludes it
+  // without needing any new paused UI (Schulte has no round timer to pause).
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      if (status.value === 'playing') hiddenAt = performance.now()
+    } else if (hiddenAt) {
+      const gap = performance.now() - hiddenAt
+      roundStartTime += gap
+      lastCorrectTime += gap
+      hiddenAt = 0
+    }
+  }
+
   function finish(now) {
     completionTime.value = now - roundStartTime
     clearInterval(elapsedId)
@@ -158,5 +175,6 @@ export function useSchulteGame() {
     start,
     select,
     reset,
+    handleVisibilityChange,
   }
 }

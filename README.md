@@ -170,8 +170,8 @@ and the reasoning behind each choice.
 ### From source
 
 ```bash
-git clone https://github.com/ebal/Stroop-Effect-Test.git
-cd Stroop-Effect-Test
+git clone https://github.com/ebal/brain.git
+cd brain
 npm install
 ```
 
