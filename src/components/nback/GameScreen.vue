@@ -23,12 +23,20 @@
 
       <ResponseButtons :disabled="!awaitingResponse" @answer="game.answer" />
     </template>
+
+    <ConfirmDialog
+      v-if="showExitConfirm"
+      message="Exit this round? Your progress on it will be lost."
+      @confirm="confirmExit"
+      @cancel="showExitConfirm = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import ResponseButtons from './ResponseButtons.vue'
+import ConfirmDialog from '../ConfirmDialog.vue'
 import { useNBackGame } from '../../composables/nback/useNBackGame.js'
 import { NBACK_DIFFICULTIES } from '../../constants/nback/difficulties.js'
 
@@ -44,8 +52,14 @@ const difficulty = computed(() =>
   Object.values(NBACK_DIFFICULTIES).find((d) => d.key === props.difficultyKey)
 )
 
+const showExitConfirm = ref(false)
+
 function handleExit() {
-  if (!window.confirm('Exit this round? Your progress on it will be lost.')) return
+  showExitConfirm.value = true
+}
+
+function confirmExit() {
+  showExitConfirm.value = false
   game.reset()
   emit('exit')
 }

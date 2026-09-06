@@ -35,12 +35,20 @@
         />
       </div>
     </template>
+
+    <ConfirmDialog
+      v-if="showExitConfirm"
+      message="Exit this round? Your progress on it will be lost."
+      @confirm="confirmExit"
+      @cancel="showExitConfirm = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import ColorButton from './ColorButton.vue'
+import ConfirmDialog from './ConfirmDialog.vue'
 import { useStroopGame } from '../composables/useStroopGame.js'
 import { DIFFICULTIES, MODES } from '../constants/colors.js'
 
@@ -59,8 +67,14 @@ const progressPct = computed(() =>
   totalDuration.value > 0 ? (timeLeft.value / totalDuration.value) * 100 : 0
 )
 
+const showExitConfirm = ref(false)
+
 function handleExit() {
-  if (!window.confirm('Exit this round? Your progress on it will be lost.')) return
+  showExitConfirm.value = true
+}
+
+function confirmExit() {
+  showExitConfirm.value = false
   game.reset()
   emit('exit')
 }
