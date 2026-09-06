@@ -133,9 +133,15 @@ const difficulties = Object.values(DIFFICULTIES)
 const modes = MODES
 const activeMode = ref(props.initialMode)
 
+function colorByName(name) {
+  return COLOR_PALETTE.find((c) => c.name === name)
+}
+
+// Ink colors are looked up from COLOR_PALETTE (never hardcoded) so these
+// examples can't drift out of sync when the palette's hex values change.
 const STATIC_EXAMPLES = [
-  { display: 'RED', wordName: 'Red', ink: { name: 'Blue', hex: '#3a86ff' } },
-  { display: 'GREEN', wordName: 'Green', ink: { name: 'Green', hex: '#2a9d52' } },
+  { display: 'RED', wordName: 'Red', ink: colorByName('Blue') },
+  { display: 'GREEN', wordName: 'Green', ink: colorByName('Green') },
 ]
 
 const examples = computed(() =>

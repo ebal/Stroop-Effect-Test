@@ -2,12 +2,12 @@
 // First 4 (Red, Blue, Green, Yellow) match the classic Stroop (1935) color set.
 export const COLOR_PALETTE = [
   { name: 'Red', hex: '#e63946' },
-  { name: 'Blue', hex: '#3a86ff' },
-  { name: 'Green', hex: '#2a9d52' },
-  { name: 'Yellow', hex: '#e0b400' },
+  { name: 'Blue', hex: '#4169e1' },
+  { name: 'Green', hex: '#6b8e23' },
+  { name: 'Yellow', hex: '#e6c200' },
   { name: 'Purple', hex: '#9b5de5' },
   { name: 'Orange', hex: '#f77f00' },
-  { name: 'Cyan', hex: '#0091ab' },
+  { name: 'Cyan', hex: '#00a8cc' },
   { name: 'Pink', hex: '#ff6fb0' },
   { name: 'Brown', hex: '#8d5524' },
   { name: 'Black', hex: '#111111' },

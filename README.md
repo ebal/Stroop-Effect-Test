@@ -16,7 +16,7 @@ A browser-based [Stroop effect](https://en.wikipedia.org/wiki/Stroop_effect) tes
 
 - **End-of-round stats**: accuracy, average response time, interference score (avg RT<sub>incongruent</sub> − avg RT<sub>congruent</sub>), and a speed/accuracy-weighted total score.
 - **Score history**: the last 20 rounds per mode + difficulty, with a sparkline trend, stored in the browser via `localStorage` — no backend, no login.
-- **About / How to Play** page with live untimed practice trials.
+- **About / How to Play** page: rule explanation, congruent/incongruent examples, a full reference of every in-game color, and a live untimed practice trial.
 - Mobile-first layout with large tap targets.
 
 See [`SPEC.md`](./SPEC.md) for the full design rationale and changelog.
@@ -31,8 +31,8 @@ See [`SPEC.md`](./SPEC.md) for the full design rationale and changelog.
 ### From source
 
 ```bash
-git clone <this-repo-url>
-cd stroop
+git clone https://github.com/ebal/Stroop-Effect-Test.git
+cd Stroop-Effect-Test
 npm install
 ```
 
