@@ -4,6 +4,7 @@ import { paletteFor } from '../constants/colors.js'
 const INTER_TRIAL_GAP_MS = 250
 const TIMER_TICK_MS = 100
 const SPEED_BONUS_THRESHOLD_MS = 1000
+const MIN_TRIALS_FOR_INTERFERENCE = 5
 
 export function useStroopGame() {
   const status = ref('idle') // idle | countdown | playing | finished
@@ -140,21 +141,30 @@ export function useStroopGame() {
     const correct = correctTrials.length
     const wrong = wrongTrials.length
     const accuracy = total > 0 ? (correct / total) * 100 : 0
-    const avgResponseTime = total > 0
-      ? answered.reduce((sum, t) => sum + t.rt, 0) / total
-      : 0
 
     const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0)
-    const congruentRTs = answered.filter((t) => t.congruent).map((t) => t.rt)
-    const incongruentRTs = answered.filter((t) => !t.congruent).map((t) => t.rt)
-    const interference = congruentRTs.length && incongruentRTs.length
+    const median = (arr) => {
+      if (!arr.length) return 0
+      const sorted = [...arr].sort((a, b) => a - b)
+      const mid = Math.floor(sorted.length / 2)
+      return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
+    }
+
+    const correctRTs = correctTrials.map((t) => t.rt)
+    const avgResponseTime = avg(correctRTs)
+    const medianResponseTime = median(correctRTs)
+
+    const congruentRTs = correctTrials.filter((t) => t.congruent).map((t) => t.rt)
+    const incongruentRTs = correctTrials.filter((t) => !t.congruent).map((t) => t.rt)
+    const interference = congruentRTs.length >= MIN_TRIALS_FOR_INTERFERENCE &&
+      incongruentRTs.length >= MIN_TRIALS_FOR_INTERFERENCE
       ? avg(incongruentRTs) - avg(congruentRTs)
       : null
 
     const speedBonusCount = correctTrials.filter((t) => t.rt < SPEED_BONUS_THRESHOLD_MS).length
     const score = Math.max(0, correct * 100 - wrong * 50 + speedBonusCount * 10)
 
-    return { total, correct, wrong, accuracy, avgResponseTime, interference, score }
+    return { total, correct, wrong, accuracy, avgResponseTime, medianResponseTime, interference, score }
   })
 
   return {

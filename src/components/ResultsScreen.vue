@@ -26,9 +26,14 @@
         <span class="label">Avg Response Time</span>
         <span class="value">{{ (results.avgResponseTime / 1000).toFixed(2) }}s</span>
       </div>
-      <div class="stat" v-if="results.interference !== null">
+      <div class="stat">
+        <span class="label">Median Response Time</span>
+        <span class="value">{{ (results.medianResponseTime / 1000).toFixed(2) }}s</span>
+      </div>
+      <div class="stat">
         <span class="label">Interference (Stroop effect)</span>
-        <span class="value">{{ (results.interference / 1000).toFixed(2) }}s</span>
+        <span class="value" v-if="results.interference !== null">{{ (results.interference / 1000).toFixed(2) }}s</span>
+        <span class="value value--muted" v-else>Not enough trials</span>
       </div>
     </div>
 
@@ -124,6 +129,12 @@ const modeLabel = MODES[props.mode].label
 
 .value.wrong {
   color: var(--wrong);
+}
+
+.value--muted {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dim);
 }
 
 .best-compare {

@@ -52,8 +52,9 @@ End-of-round summary:
 - **Correct answers / Wrong answers** (counts)
 - **Total trials attempted**
 - **Accuracy rate** = correct / total, as %
-- **Average response time** — mean RT across all answered trials (expected to land ~1.0–1.5 s per your note; this is an *output* of real play, not something hardcoded)
-- **Interference score** — avg RT(incongruent) − avg RT(congruent), a bonus metric that makes this a genuine Stroop measurement rather than a reflex game
+- **Average response time** — mean RT across correct answered trials (expected to land ~1.0–1.5 s per your note; this is an *output* of real play, not something hardcoded)
+- **Median response time** — median RT across correct answered trials, shown alongside the average to reduce the impact of occasional unusually slow responses
+- **Interference score** — avg RT(incongruent) − avg RT(congruent), using correct responses only. Show the interference score only when there are at least 5 valid congruent and 5 valid incongruent responses; otherwise display "Not enough trials". This is a bonus metric that makes this a genuine Stroop measurement rather than a reflex game
 - **Total score** — a simple formula rewarding both speed and accuracy:
   `score = correct_answers × 100 − wrong_answers × 50`, with an optional speed bonus per correct answer for RT < 1000 ms (+10). Simple, transparent, tunable later.
 - **Best score for this difficulty** — compared against the stored personal best; shown as "New Best!" when beaten.
@@ -107,7 +108,7 @@ This keeps game logic (composables) separate from presentation (components), whi
 
 ## 6. UX details worth deciding now
 
-- **Input method**: on-screen clickable color-swatch buttons (works on desktop and touch/mobile alike). Optional keyboard shortcuts (1–5 / 1–0) as a fast-follow, not required for v1.
+- **Input method**: on-screen clickable color-swatch buttons (works on desktop and touch/mobile alike). Button positions remain fixed within each difficulty so the test does not add visual-search and changing motor-navigation costs on top of Stroop interference. Optional keyboard shortcuts (1–5 / 1–0) as a fast-follow, not required for v1.
 - **Colorblind consideration**: since this is fundamentally a color test, true colorblind accessibility is out of scope for v1 (it would change the nature of the test), but palette colors are chosen to be maximally distinct even under common color-vision deficiencies. Noted as a future option (shape/pattern overlay mode).
 - **Countdown/start**: 3-2-1 countdown before each round starts, so the timer doesn't eat reaction time on the very first trial.
 - **Mid-round pause between trials**: ~250 ms blank gap after each answer, per standard Stroop implementations, to prevent anticipatory clicking.
