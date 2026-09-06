@@ -26,7 +26,7 @@ See [`SPEC.md`](./SPEC.md) for the full design rationale and changelog.
 ### Requirements
 
 - [Node.js](https://nodejs.org/) 20+ and npm — for local development.
-- [Docker](https://www.docker.com/) and Docker Compose — for the containerized deployment.
+- [Docker](https://www.docker.com/) and Docker Compose — optional, if you'd rather not install Node locally (see below).
 
 ### From source
 
@@ -53,25 +53,37 @@ npm run build   # outputs static files to ./dist
 npm run preview # serve the build locally to sanity-check it
 ```
 
-### Docker (recommended for deployment)
+### Docker (dev server, no build step)
 
-The app ships as two plain, unmodified official images — no custom Dockerfile:
-
-- `stroop` — `nginx:alpine`, serves the pre-built `./dist` folder read-only. Always-on; starting/stopping it never triggers a build.
-- `builder` — `node:20-alpine`, runs `npm install && npm run build` to (re)produce `./dist`. Only runs on demand, under the `build` profile.
-
-Build the app and start serving it:
+Runs the Vite dev server itself inside the container, directly against the bind-mounted source,
+with full hot-reload — no Node install on the host, no build, no rebuild step.
 
 ```bash
-docker compose --profile build run --rm builder   # build ./dist
-docker compose up -d                               # serve it on http://localhost:8888
+docker compose up
 ```
 
-Since `./dist` is bind-mounted straight into the nginx container, re-running the `builder` after a source change picks up immediately — no restart needed. To stop the service:
+Open `http://localhost:5173` — edit any file and the browser updates instantly. Stop with
+`docker compose stop`.
+
+Note this runs Vite's own dev server (unminified, dev-only tooling) rather than serving an
+optimized production build — fine for local/personal use, but if you ever want a hardened
+production deployment (e.g. nginx serving a minified `npm run build` output), that's a deliberate
+step back up in complexity this repo no longer ships out of the box; `npm run build && npm run
+preview` (below) is the closest built-in equivalent.
+
+#### File ownership
+
+The container bind-mounts the whole project and writes into it (`node_modules`, `.npm-cache`), so
+it runs as `${DOCKER_UID:-1000}:${DOCKER_GID:-1000}` instead of root — otherwise those files would
+end up root-owned on your host. The default (`1000:1000`) matches the first regular user on most
+single-user Linux installs; if your account uses a different UID/GID, set it once in a local `.env`
+file (already gitignored, so it stays machine-specific):
 
 ```bash
-docker compose stop
+printf "DOCKER_UID=%s\nDOCKER_GID=%s\n" "$(id -u)" "$(id -g)" > .env
 ```
+
+Compose picks up `.env` automatically from then on — no need to pass anything on the command line.
 
 ## Project structure
 

@@ -3,7 +3,7 @@
 export const COLOR_PALETTE = [
   { name: 'Red', hex: '#e63946' },
   { name: 'Blue', hex: '#3a86ff' },
-  { name: 'Green', hex: '#2a9d8f' },
+  { name: 'Green', hex: '#2a9d52' },
   { name: 'Yellow', hex: '#e0b400' },
   { name: 'Purple', hex: '#9b5de5' },
   { name: 'Orange', hex: '#f77f00' },

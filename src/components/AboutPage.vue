@@ -70,6 +70,15 @@
       </div>
     </div>
 
+    <h2>Colors</h2>
+    <p class="intro">
+      Every color used in the game, shown in its actual in-game ink color. Lower difficulties use
+      just the first few; higher difficulties add the rest.
+    </p>
+    <div class="colors-grid">
+      <ColorButton v-for="c in COLOR_PALETTE" :key="c.name" :color="c" />
+    </div>
+
     <h2>Try it yourself</h2>
     <p class="intro">No timer, no scoring — just get a feel for it before you play for real.</p>
 
@@ -112,7 +121,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ColorButton from './ColorButton.vue'
-import { paletteFor, DIFFICULTIES, MODES } from '../constants/colors.js'
+import { paletteFor, COLOR_PALETTE, DIFFICULTIES, MODES } from '../constants/colors.js'
 
 const props = defineProps({
   initialMode: { type: String, default: 'color' },
@@ -126,7 +135,7 @@ const activeMode = ref(props.initialMode)
 
 const STATIC_EXAMPLES = [
   { display: 'RED', wordName: 'Red', ink: { name: 'Blue', hex: '#3a86ff' } },
-  { display: 'GREEN', wordName: 'Green', ink: { name: 'Green', hex: '#2a9d8f' } },
+  { display: 'GREEN', wordName: 'Green', ink: { name: 'Green', hex: '#2a9d52' } },
 ]
 
 const examples = computed(() =>
@@ -269,6 +278,13 @@ h2 {
   letter-spacing: 0.03em;
 }
 
+.colors-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
 .demo {
   background: var(--surface);
   border-radius: 16px;
@@ -354,6 +370,10 @@ h2 {
 @media (max-width: 480px) {
   .examples-static {
     grid-template-columns: 1fr;
+  }
+
+  .colors-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .options-grid {
