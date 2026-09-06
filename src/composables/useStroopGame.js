@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { paletteFor } from '../constants/colors.js'
+import { avg, median } from './mathStats.js'
 
 const INTER_TRIAL_GAP_MS = 250
 const TIMER_TICK_MS = 100
@@ -156,14 +157,6 @@ export function useStroopGame() {
     const correct = correctTrials.length
     const wrong = wrongTrials.length
     const accuracy = total > 0 ? (correct / total) * 100 : 0
-
-    const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0)
-    const median = (arr) => {
-      if (!arr.length) return 0
-      const sorted = [...arr].sort((a, b) => a - b)
-      const mid = Math.floor(sorted.length / 2)
-      return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
-    }
 
     const correctRTs = correctTrials.map((t) => t.rt)
     const avgResponseTime = avg(correctRTs)
