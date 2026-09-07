@@ -12,7 +12,7 @@ color name rendered in an ink color and must click the swatch matching the **ink
 what the word says — most trials are deliberately incongruent (word ≠ ink color), which is what
 produces the measurable slowdown the test is named for.
 
-- **Two game modes**: Color Match (tap the ink color — the classic task) and Word Match (tap what the word says — the "word reading" control condition, which shows much less interference).
+- **Three game modes**: Color Match (tap the ink color — the classic task), Word Match (tap what the word says — the "word reading" control condition, which shows much less interference), and Underline Word (plays like Color Match, but ~25% of trials are randomly underlined and flip the target to the word instead — a cued task-switching variant that adds a rule-switching cost on top of the usual color/word interference).
 - **Four difficulty tiers** that scale on two axes at once — more color choices and a higher incongruent ratio:
 
   | Difficulty | Colors | Duration | Incongruent / Congruent mix |
