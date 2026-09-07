@@ -43,6 +43,7 @@ once per round and never moves — the task measures scanning and attention, not
   search time between consecutive correct picks, and fastest/slowest search.
 - **Personal bests require a zero-error round** — a fast round full of mistakes can't set a record.
 - **Score history**: the last 20 rounds per difficulty, with a completion-time sparkline, stored in `localStorage`.
+- **Two optional variants**, toggled independently before starting a round and available at every grid size: **Random Color** (each cell gets a random background, fixed for the round) and **Random Position** (numbers reshuffle among the still-unsolved cells after every correct tap). Each variant is tracked with its own separate best time/history, never mixed with Classic.
 - **About / How to Play** page with a static example and an untimed practice board.
 
 See [`Schulte-SPEC.md`](./Schulte-SPEC.md) for the full design rationale.
@@ -465,8 +466,10 @@ stroop/
     └── constants/
         ├── benchmark.js             # Benchmark Mode: fixed per-game config + benchmarkVersion
         ├── colors.js                # Stroop: color palette, difficulty tiers, game modes
+        ├── cellColors.js            # shared Random Color palette + WCAG-style contrast picker (Schulte, Switch Trail)
         ├── schulte/
-        │   └── difficulties.js      # Schulte: grid sizes per difficulty
+        │   ├── difficulties.js      # Schulte: grid sizes per difficulty
+        │   └── variants.js          # Schulte: Classic/Color/Position/Color+Position variant keys
         ├── nback/
         │   ├── difficulties.js      # N-Back: N per difficulty, scored-trial counts
         │   └── colors.js            # N-Back: stimulus color palette (cycled, never repeats consecutively)
@@ -478,7 +481,8 @@ stroop/
         ├── sequence-memory/
         │   └── difficulties.js      # Sequence Memory: lives + flash/gap timing per difficulty
         └── switchtrail/
-            └── difficulties.js      # Switch Trail: target count + time limit per difficulty
+            ├── difficulties.js      # Switch Trail: target count + time limit per difficulty
+            └── variants.js          # Switch Trail: Classic/Random Color variant keys
 ```
 
 ## License
