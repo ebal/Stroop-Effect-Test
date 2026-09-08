@@ -15,7 +15,7 @@ that particular game, not proof of general cognitive improvement.
 | --- | --- |
 | [Stroop Effect Test](#stroop-effect-test) | Inhibition / interference |
 | [Schulte Tables](#schulte-tables) | Visual search / attention |
-| [Number N-Back](#number-n-back) | Working memory |
+| [Number N-Back](#number-n-back) | Visual matching / sustained attention |
 | [Sudoku](#sudoku) | Logic / reasoning |
 | [SET](#set) | Pattern recognition |
 | [Sequence Memory](#sequence-memory) | Visuospatial sequence memory |
@@ -58,11 +58,14 @@ See [`Schulte-SPEC.md`](./Schulte-SPEC.md) for the full design rationale.
 
 ## Number N-Back
 
-A continuous working-memory task: does the number shown now match the one shown **N positions
-earlier** — not just whether it's appeared before at all?
+Numbers appear one at a time as flipping playing cards: does the current card match the one shown
+**N positions earlier** — not just whether it's appeared before at all? The trailing N cards stay
+visible on screen next to the current one, so the comparison is a direct visual check rather than a
+pure memory-recall task like the classic n-back paradigm this is styled after (a deliberate choice —
+see [`NBack-SPEC.md`](./NBack-SPEC.md) §1 for the trade-off).
 
 - **Three N levels**, 2-back through 4-back, with 2-back as the Classic reference difficulty.
-  Difficulty comes purely from how far back you have to remember, never a larger number pool.
+  Difficulty comes purely from how far back you have to compare, never a larger number pool.
 - **Self-paced** — the stimulus waits for your response; no live reaction-time pressure.
 - Deliberately generated/validated sequences keep the target-match ratio stable across rounds.
 - Score and accuracy are tracked separately from raw hit/miss/false-alarm counts.

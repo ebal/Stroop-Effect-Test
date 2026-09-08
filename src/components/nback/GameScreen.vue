@@ -15,18 +15,24 @@
       </div>
 
       <div class="stimulus-area">
-        <div class="card-stack" :style="{ '--flip-ms': `${CARD_FLIP_MS}ms` }">
-          <div class="stack-layer stack-layer--2" aria-hidden="true"></div>
-          <div class="stack-layer stack-layer--1" aria-hidden="true"></div>
-          <TransitionGroup name="nback-card" tag="div" class="card-slot" appear>
-            <div :key="currentIndex" class="nback-card">
-              <div class="card-inner">
-                <div class="card-face card-back" aria-hidden="true"></div>
-                <div class="card-face card-front" :style="{ color: currentColor }">{{ currentNumber }}</div>
-              </div>
+        <TransitionGroup
+          name="nback-card"
+          tag="div"
+          class="card-row"
+          :style="{ '--flip-ms': `${CARD_FLIP_MS}ms` }"
+        >
+          <div
+            v-for="card in visibleCards"
+            :key="card.index"
+            class="nback-card"
+            :class="{ current: card.isCurrent }"
+          >
+            <div class="card-inner">
+              <div class="card-face card-back" aria-hidden="true"></div>
+              <div class="card-face card-front" :style="{ color: card.color }">{{ card.number }}</div>
             </div>
-          </TransitionGroup>
-        </div>
+          </div>
+        </TransitionGroup>
         <div v-if="feedback" class="feedback-icon" :class="feedback" aria-live="polite">
           {{ feedback === 'correct' ? '✓' : '✕' }}
         </div>
@@ -57,7 +63,7 @@ const props = defineProps({
 const emit = defineEmits(['finished', 'exit'])
 
 const game = useNBackGame()
-const { status, countdownValue, currentIndex, currentNumber, currentColor, isSetupPhase, scoredAnswered, totalScored, feedback, awaitingResponse, results } = game
+const { status, countdownValue, visibleCards, isSetupPhase, scoredAnswered, totalScored, feedback, awaitingResponse, results } = game
 
 const difficulty = computed(() =>
   Object.values(NBACK_DIFFICULTIES).find((d) => d.key === props.difficultyKey)
@@ -153,51 +159,37 @@ watch(status, (val) => {
 .stimulus-area {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--surface);
   border-radius: 16px;
+  padding: 0 0.75rem;
   user-select: none;
   overflow: hidden;
 }
 
-/* A face-down deck the current stimulus is "drawn" from: two static, subtly
-   offset layers behind the live card sell the stack illusion. */
-.card-stack {
+.card-row {
   position: relative;
-  width: clamp(9rem, 32vw, 11rem);
-  height: clamp(12rem, 40vw, 14.5rem);
-}
-
-.stack-layer {
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--surface-2);
-}
-
-.stack-layer--2 {
-  transform: translate(8px, 12px) rotate(3deg);
-  opacity: 0.35;
-}
-
-.stack-layer--1 {
-  transform: translate(4px, 6px) rotate(1.5deg);
-  opacity: 0.6;
-}
-
-.card-slot {
-  position: absolute;
-  inset: 0;
-  perspective: 1200px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
 }
 
 .nback-card {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  flex: 0 1 clamp(3.75rem, 18vw, 5.5rem);
+  aspect-ratio: 0.72;
+  perspective: 1000px;
+}
+
+/* Existing cards sliding into their new slot as the window advances. */
+.nback-card-move {
+  transition: transform 0.3s ease;
 }
 
 .card-inner {
@@ -214,23 +206,31 @@ watch(status, (val) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--surface-2);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
 }
 
 .card-front {
   background: var(--surface-2);
-  border: 1px solid var(--surface-2);
-  font-size: clamp(3.5rem, 20vw, 5.5rem);
+  font-size: clamp(1.6rem, 8vw, 2.5rem);
   font-weight: 800;
   line-height: 1;
+  opacity: 0.55;
 }
 
 .card-back {
   background: linear-gradient(135deg, var(--accent) 0%, var(--surface-2) 100%);
-  border: 1px solid var(--surface-2);
   transform: rotateY(180deg);
+}
+
+/* The card being answered stands out from the already-revealed history
+   cards next to it. */
+.nback-card.current .card-front {
+  opacity: 1;
+  border-color: var(--accent);
 }
 
 /* Enter = flip face-up: the card starts back-first (rotateY 180) and rotates
@@ -249,14 +249,17 @@ watch(status, (val) => {
   transform: rotateY(0deg);
 }
 
-/* Leave = discard: the outgoing (already face-up) card slides off toward the
-   stack and fades, rather than just disappearing. */
+/* Leave = discard: the oldest (now more than N back) card slides off to the
+   side and fades once it drops out of the visible window, instead of just
+   disappearing. Taken out of flow so remaining cards can slide into its
+   spot (the .nback-card-move transition above) at the same time. */
 .nback-card-leave-active {
+  position: absolute;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .nback-card-leave-to {
-  transform: translate(-60%, 18%) rotate(-16deg);
+  transform: translate(-60%, 15%) rotate(-14deg);
   opacity: 0;
 }
 

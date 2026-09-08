@@ -18,7 +18,11 @@ The task primarily exercises working-memory updating, sustained attention, and r
 
 Design decision this implies for the app
 
-The app presents one number at a time in the center of the screen.
+The app presents each number as a flipping playing card. Unlike the classic n-back paradigm
+described above, the trailing N cards stay visible on screen next to the current one — so the
+comparison is a direct, on-screen visual check against the card N positions back, not a recall
+from memory (a deliberate, later UI decision, made knowing it changes what the task actually
+measures — see README.md's Number N-Back section).
 
 For each scored stimulus the player answers:
 

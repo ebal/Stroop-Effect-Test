@@ -26,6 +26,10 @@ export function useNBackGame() {
   let n = 0
   let scoredTrials = 0
   let sequence = null
+  // Colors are randomized per presentation (unlike sequence.numbers, which is
+  // fixed upfront) so a re-displayed card in the visible history row needs
+  // its originally-assigned color recorded, not a freshly rerolled one.
+  let presentedColors = []
   let stimulusShownTime = 0
   let hiddenAt = 0
   let countdownId = null
@@ -56,6 +60,7 @@ export function useNBackGame() {
   function presentStimulus() {
     currentNumber.value = sequence.numbers[currentIndex.value]
     currentColor.value = nextStimulusColor()
+    presentedColors[currentIndex.value] = currentColor.value
     isSetupPhase.value = currentIndex.value < n
     awaitingResponse.value = false
 
@@ -81,6 +86,7 @@ export function useNBackGame() {
     scoredTrials = difficulty.scoredTrials
     sequence = generateSequence(n, scoredTrials, seed)
     validateSequence(sequence)
+    presentedColors = []
 
     currentIndex.value = 0
     currentNumber.value = null
@@ -172,6 +178,27 @@ export function useNBackGame() {
     status.value = 'idle'
   }
 
+  // The trailing N presented cards plus the current one — lets the player
+  // see the exact card N positions back next to the one they're answering,
+  // rather than recalling it from memory. Deliberately a design choice made
+  // for this UI: it changes what N-Back measures (visual matching, not
+  // working-memory recall), by request.
+  const visibleCards = computed(() => {
+    if (!sequence || currentNumber.value === null) return []
+    const end = currentIndex.value
+    const start = Math.max(0, end - n)
+    const cards = []
+    for (let i = start; i <= end; i++) {
+      cards.push({
+        index: i,
+        number: sequence.numbers[i],
+        color: presentedColors[i],
+        isCurrent: i === end,
+      })
+    }
+    return cards
+  })
+
   const results = computed(() => {
     const answered = trials.value
     const total = answered.length
@@ -201,6 +228,7 @@ export function useNBackGame() {
     currentIndex,
     currentNumber,
     currentColor,
+    visibleCards,
     isSetupPhase,
     scoredAnswered,
     totalScored,
