@@ -23,6 +23,7 @@ export function useNBackGame() {
   let scoredTrials = 0
   let sequence = null
   let stimulusShownTime = 0
+  let hiddenAt = 0
   let countdownId = null
   let goTimeoutId = null
   let advanceTimeoutId = null
@@ -132,6 +133,21 @@ export function useNBackGame() {
     }, INTER_STIMULUS_GAP_MS)
   }
 
+  // Backgrounding the tab doesn't pause performance.now(), so without this a
+  // stimulus answered after returning from background would measure the
+  // entire hidden wall-clock gap as reaction time. Shifting the anchor
+  // forward by the hidden duration excludes it without needing any new
+  // paused UI. Mirrors the same fix in useStroopGame.js.
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      hiddenAt = performance.now()
+    } else if (hiddenAt) {
+      const gap = performance.now() - hiddenAt
+      if (status.value === 'playing') stimulusShownTime += gap
+      hiddenAt = 0
+    }
+  }
+
   function finish() {
     clearTimers()
     awaitingResponse.value = false
@@ -180,5 +196,6 @@ export function useNBackGame() {
     start,
     answer,
     reset,
+    handleVisibilityChange,
   }
 }

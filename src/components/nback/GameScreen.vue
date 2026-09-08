@@ -74,11 +74,13 @@ function handleKeydown(e) {
 onMounted(() => {
   game.start(difficulty.value)
   window.addEventListener('keydown', handleKeydown)
+  document.addEventListener('visibilitychange', game.handleVisibilityChange)
 })
 
 onUnmounted(() => {
   game.reset()
   window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('visibilitychange', game.handleVisibilityChange)
 })
 
 watch(status, (val) => {
