@@ -27,7 +27,7 @@
             class="nback-card"
             :class="{ current: card.isCurrent }"
           >
-            <div class="card-inner">
+            <div class="card-inner" :class="{ revealed: card.isCurrent }">
               <div class="card-face card-back" aria-hidden="true"></div>
               <div class="card-face card-front" :style="{ color: card.color }">{{ card.number }}</div>
             </div>
@@ -192,11 +192,21 @@ watch(status, (val) => {
   transition: transform 0.3s ease;
 }
 
+/* At rest, only the current card (being answered) is revealed — the trailing
+   N cards sit face-down, so recalling what's under them (not re-checking by
+   eye) is still the actual task. Both the initial flip-up on arrival and the
+   flip-back-down once a newer card demotes this one to history are driven by
+   this single, always-on transition. */
 .card-inner {
   position: relative;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
+  transform: rotateY(180deg);
+  transition: transform var(--flip-ms, 350ms) ease;
+}
+
+.card-inner.revealed {
   transform: rotateY(0deg);
 }
 
@@ -210,7 +220,6 @@ watch(status, (val) => {
   border: 1px solid var(--surface-2);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  transition: opacity 0.2s ease, border-color 0.2s ease;
 }
 
 .card-front {
@@ -218,7 +227,10 @@ watch(status, (val) => {
   font-size: clamp(1.6rem, 8vw, 2.5rem);
   font-weight: 800;
   line-height: 1;
-  opacity: 0.55;
+}
+
+.nback-card.current .card-front {
+  border-color: var(--accent);
 }
 
 .card-back {
@@ -226,27 +238,11 @@ watch(status, (val) => {
   transform: rotateY(180deg);
 }
 
-/* The card being answered stands out from the already-revealed history
-   cards next to it. */
-.nback-card.current .card-front {
-  opacity: 1;
-  border-color: var(--accent);
-}
-
-/* Enter = flip face-up: the card starts back-first (rotateY 180) and rotates
-   to face-front over CARD_FLIP_MS, matching the delay useNBackGame.js
-   applies before starting the RT clock, so the flip never biases measured
-   reaction times. */
-.nback-card-enter-active .card-inner {
-  transition: transform var(--flip-ms, 350ms) ease;
-}
-
+/* Force a newly-arrived card (which mounts already "current"/revealed) to
+   start back-first, so there's something to visibly flip from — without
+   this override the card would just appear face-up with no animation. */
 .nback-card-enter-from .card-inner {
   transform: rotateY(180deg);
-}
-
-.nback-card-enter-to .card-inner {
-  transform: rotateY(0deg);
 }
 
 /* Leave = discard: the oldest (now more than N back) card slides off to the
