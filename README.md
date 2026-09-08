@@ -97,9 +97,13 @@ it stays offline-capable for free). Find three cards where every property (numbe
 shading) is all-same or all-different, using the actual mathematical rule rather than a lookup
 list.
 
-- Easy/Medium/Hard change only how much help you get on a wrong guess — never the underlying
-  math or board-size behavior.
-- **Progressive hints**, unlimited but any use disqualifies that game from a new **Clean Best**.
+- **Four difficulties**: Easy (9 cards, explains wrong guesses, starts every board with one free
+  hint card already revealed), Medium (12 cards), Hard (12 cards, no explanation), and Extreme (15
+  cards, same assistance as Hard) — the underlying math never changes, only board size and help.
+- **Progressive hints**, unlimited but any use disqualifies that game from a new **Clean Best**
+  (Easy's one free starting card is exempt, so a Clean Best stays reachable there too).
+- Optional **Light Colors** toggle swaps the card colors for a softer palette — purely cosmetic.
+- A direct exit button (with confirmation) is available mid-game, not just from Pause.
 - Autosave & Continue Game, auto-pause on tab-hidden, per-difficulty stats and history.
 - No synthetic score — completion time, mistakes, hints, and find time are the primary measurements.
 
