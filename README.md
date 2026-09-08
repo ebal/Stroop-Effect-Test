@@ -66,6 +66,9 @@ whole task, this just makes "how many steps" easier to track than the number its
 
 - **Three N levels**, 2-back through 4-back, with 2-back as the Classic reference difficulty.
   Difficulty comes purely from how far back you have to remember, never a larger number pool.
+- **Extreme**: the same 2-back distance as Classic, but numbers are swapped for a fixed
+  consonant pool (C, H, K, L, Q, R, S, T — vowels excluded as too memorable/distinctive) over a
+  longer, 70-trial round — harder because the pool is less familiar, not because N is bigger.
 - **Self-paced** — the stimulus waits for your response; no live reaction-time pressure.
 - Deliberately generated/validated sequences keep the target-match ratio stable across rounds.
 - Score and accuracy are tracked separately from raw hit/miss/false-alarm counts.
