@@ -6,6 +6,10 @@ import { avg, median } from '../mathStats.js'
 const SETUP_DISPLAY_MS = 1200
 const INTER_STIMULUS_GAP_MS = 300
 
+// Exported so the card-flip UI's CSS transition duration can stay in sync
+// with the delay below that gates when the RT clock actually starts.
+export const CARD_FLIP_MS = 350
+
 export function useNBackGame() {
   const status = ref('idle') // idle | countdown | playing | finished
   const countdownValue = ref(0)
@@ -27,14 +31,17 @@ export function useNBackGame() {
   let countdownId = null
   let goTimeoutId = null
   let advanceTimeoutId = null
+  let flipTimeoutId = null
 
   function clearTimers() {
     clearInterval(countdownId)
     clearTimeout(goTimeoutId)
     clearTimeout(advanceTimeoutId)
+    clearTimeout(flipTimeoutId)
     countdownId = null
     goTimeoutId = null
     advanceTimeoutId = null
+    flipTimeoutId = null
   }
 
   function nextStimulusColor() {
@@ -50,17 +57,23 @@ export function useNBackGame() {
     currentNumber.value = sequence.numbers[currentIndex.value]
     currentColor.value = nextStimulusColor()
     isSetupPhase.value = currentIndex.value < n
+    awaitingResponse.value = false
 
-    if (isSetupPhase.value) {
-      awaitingResponse.value = false
-      advanceTimeoutId = setTimeout(() => {
-        currentIndex.value += 1
-        presentStimulus()
-      }, SETUP_DISPLAY_MS)
-    } else {
-      stimulusShownTime = performance.now()
-      awaitingResponse.value = true
-    }
+    // The card's flip-reveal animation (CARD_FLIP_MS, driven by the
+    // TransitionGroup enter transition in GameScreen.vue) runs for this same
+    // duration, so the RT clock (and the setup-phase display timer) start
+    // only once the flip finishes — its duration never leaks into measured RTs.
+    flipTimeoutId = setTimeout(() => {
+      if (isSetupPhase.value) {
+        advanceTimeoutId = setTimeout(() => {
+          currentIndex.value += 1
+          presentStimulus()
+        }, SETUP_DISPLAY_MS)
+      } else {
+        stimulusShownTime = performance.now()
+        awaitingResponse.value = true
+      }
+    }, CARD_FLIP_MS)
   }
 
   function start(difficulty, seed) {
@@ -185,6 +198,7 @@ export function useNBackGame() {
   return {
     status,
     countdownValue,
+    currentIndex,
     currentNumber,
     currentColor,
     isSetupPhase,

@@ -15,7 +15,18 @@
       </div>
 
       <div class="stimulus-area">
-        <div class="number" :style="{ color: currentColor }">{{ currentNumber }}</div>
+        <div class="card-stack" :style="{ '--flip-ms': `${CARD_FLIP_MS}ms` }">
+          <div class="stack-layer stack-layer--2" aria-hidden="true"></div>
+          <div class="stack-layer stack-layer--1" aria-hidden="true"></div>
+          <TransitionGroup name="nback-card" tag="div" class="card-slot" appear>
+            <div :key="currentIndex" class="nback-card">
+              <div class="card-inner">
+                <div class="card-face card-back" aria-hidden="true"></div>
+                <div class="card-face card-front" :style="{ color: currentColor }">{{ currentNumber }}</div>
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
         <div v-if="feedback" class="feedback-icon" :class="feedback" aria-live="polite">
           {{ feedback === 'correct' ? '✓' : '✕' }}
         </div>
@@ -37,7 +48,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import ResponseButtons from './ResponseButtons.vue'
 import ConfirmDialog from '../ConfirmDialog.vue'
-import { useNBackGame } from '../../composables/nback/useNBackGame.js'
+import { useNBackGame, CARD_FLIP_MS } from '../../composables/nback/useNBackGame.js'
 import { NBACK_DIFFICULTIES } from '../../constants/nback/difficulties.js'
 
 const props = defineProps({
@@ -46,7 +57,7 @@ const props = defineProps({
 const emit = defineEmits(['finished', 'exit'])
 
 const game = useNBackGame()
-const { status, countdownValue, currentNumber, currentColor, isSetupPhase, scoredAnswered, totalScored, feedback, awaitingResponse, results } = game
+const { status, countdownValue, currentIndex, currentNumber, currentColor, isSetupPhase, scoredAnswered, totalScored, feedback, awaitingResponse, results } = game
 
 const difficulty = computed(() =>
   Object.values(NBACK_DIFFICULTIES).find((d) => d.key === props.difficultyKey)
@@ -142,20 +153,111 @@ watch(status, (val) => {
 .stimulus-area {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--surface);
   border-radius: 16px;
   user-select: none;
+  overflow: hidden;
 }
 
-.number {
-  font-size: clamp(4rem, 22vw, 6.5rem);
+/* A face-down deck the current stimulus is "drawn" from: two static, subtly
+   offset layers behind the live card sell the stack illusion. */
+.card-stack {
+  position: relative;
+  width: clamp(9rem, 32vw, 11rem);
+  height: clamp(12rem, 40vw, 14.5rem);
+}
+
+.stack-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--surface-2);
+}
+
+.stack-layer--2 {
+  transform: translate(8px, 12px) rotate(3deg);
+  opacity: 0.35;
+}
+
+.stack-layer--1 {
+  transform: translate(4px, 6px) rotate(1.5deg);
+  opacity: 0.6;
+}
+
+.card-slot {
+  position: absolute;
+  inset: 0;
+  perspective: 1200px;
+}
+
+.nback-card {
+  position: absolute;
+  inset: 0;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: rotateY(0deg);
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-front {
+  background: var(--surface-2);
+  border: 1px solid var(--surface-2);
+  font-size: clamp(3.5rem, 20vw, 5.5rem);
   font-weight: 800;
-  color: var(--text);
   line-height: 1;
+}
+
+.card-back {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--surface-2) 100%);
+  border: 1px solid var(--surface-2);
+  transform: rotateY(180deg);
+}
+
+/* Enter = flip face-up: the card starts back-first (rotateY 180) and rotates
+   to face-front over CARD_FLIP_MS, matching the delay useNBackGame.js
+   applies before starting the RT clock, so the flip never biases measured
+   reaction times. */
+.nback-card-enter-active .card-inner {
+  transition: transform var(--flip-ms, 350ms) ease;
+}
+
+.nback-card-enter-from .card-inner {
+  transform: rotateY(180deg);
+}
+
+.nback-card-enter-to .card-inner {
+  transform: rotateY(0deg);
+}
+
+/* Leave = discard: the outgoing (already face-up) card slides off toward the
+   stack and fades, rather than just disappearing. */
+.nback-card-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.nback-card-leave-to {
+  transform: translate(-60%, 18%) rotate(-16deg);
+  opacity: 0;
 }
 
 .feedback-icon {
