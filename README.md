@@ -61,7 +61,7 @@ See [`Schulte-SPEC.md`](./Schulte-SPEC.md) for the full design rationale.
 A continuous working-memory task: does the number shown now match the one shown **N positions
 earlier** — not just whether it's appeared before at all?
 
-- **Four N levels**, 1-back through 4-back, with 2-back as the Classic reference difficulty.
+- **Three N levels**, 2-back through 4-back, with 2-back as the Classic reference difficulty.
   Difficulty comes purely from how far back you have to remember, never a larger number pool.
 - **Self-paced** — the stimulus waits for your response; no live reaction-time pressure.
 - Deliberately generated/validated sequences keep the target-match ratio stable across rounds.
