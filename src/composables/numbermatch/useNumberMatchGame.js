@@ -1,7 +1,6 @@
 import { ref, computed } from 'vue'
 import {
   isLegalPair,
-  isNumericMatch,
   removePair,
   appendRemainingNumbers,
   remainingCount,
@@ -13,10 +12,7 @@ import { calculateNumberMatchScore } from './scoring.js'
 import { getDifficultyConfig } from '../../constants/numbermatch/difficulties.js'
 
 const TIMER_TICK_MS = 250
-// Long enough to actually read the "blocked" vs "not a pair" message
-// (SPEC clarification: these are different reasons a tap can fail, and
-// were previously shown with identical generic feedback).
-const FLASH_MS = 900
+const FLASH_MS = 400
 
 export function useNumberMatchGame() {
   const status = ref('idle') // idle | playing | paused | finished
@@ -33,12 +29,7 @@ export function useNumberMatchGame() {
   const undos = ref(0)
   const addNumbersUsed = ref(0)
   const hintPair = ref(null) // [i,j] | null — SPEC §14
-  // { pair: [i,j], reason: 'mismatch' | 'blocked' } | null — transient.
-  // 'mismatch' = the two numbers don't add up; 'blocked' = they do, but no
-  // clear path connects them right now. Distinguishing these was added
-  // after user feedback that a blocked-but-numerically-valid pair (e.g. two
-  // 5s with something else between them) looked like a math bug.
-  const invalidFlash = ref(null)
+  const invalidFlash = ref(null) // [i,j] | null — transient
   const elapsedTime = ref(0)
   const gameId = ref(null)
   const startedAt = ref(null)
@@ -120,11 +111,11 @@ export function useNumberMatchGame() {
     evaluateBoardState()
   }
 
-  function performMistake(i, j, reason) {
+  function performMistake(i, j) {
     moves.value += 1
     mistakes.value += 1
     selected.value = null
-    invalidFlash.value = { pair: [i, j], reason }
+    invalidFlash.value = [i, j]
     if (flashTimeoutId) clearTimeout(flashTimeoutId)
     flashTimeoutId = setTimeout(() => {
       invalidFlash.value = null
@@ -154,14 +145,7 @@ export function useNumberMatchGame() {
     if (isLegalPair(boardState.value, a, b)) {
       performRemoval(a, b)
     } else {
-      // Two different failure reasons a player can hit — see invalidFlash's
-      // declaration above for why this distinction matters. isLegalPair
-      // already failed here, so a numeric match with no connection is
-      // exactly the 'blocked' case; anything else is a plain mismatch.
-      const av = boardState.value.cells[a]
-      const bv = boardState.value.cells[b]
-      const reason = isNumericMatch(av, bv) ? 'blocked' : 'mismatch'
-      performMistake(a, b, reason)
+      performMistake(a, b)
     }
   }
 

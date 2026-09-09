@@ -253,20 +253,22 @@ See [`Emoji-Mahjong-SPEC.md`](./Emoji-Mahjong-SPEC.md) for the full design ratio
 
 ## Number Match
 
-Match two numbers when they're identical or add up to 10 — but only if they're connected by a
-clear horizontal, vertical, or true-diagonal path, or by reading order (which can wrap from the
-end of one row to the start of the next). Removed cells stay empty and never reflow, so board
-positions stay stable for planning.
+A [Make 10](https://artfulmath.com/make-10-game/)-style number-matching game: tap any two numbers,
+anywhere on the board, that are identical or add up to 10. Position never matters — no adjacency or
+path requirement, unlike Emoji Mahjong's covering rule. Removed cells stay empty and never reflow,
+so board positions stay stable for planning.
 
 - Six difficulties (Easy through Extreme), scaling board size (6×3 up to 9×10) and how few **Add
   Numbers** uses are available (4 down to 1), never past 9 columns — Expert/Extreme grow taller
   instead of wider to stay usable on a real iPhone.
 - **Add Numbers**, used when stuck, copies every remaining number (in reading order) onto new
   cells appended to the end of the board — the board can grow well past its starting size, so it
-  scrolls vertically rather than needing a fixed footprint.
-- Unlike Emoji Mahjong, a starting board only needs *one* legal opening move, not a guaranteed full
-  clear — Add Numbers is the release valve for the rest, so an attempt can end in "No More Matches"
-  as a completed-but-uncleared result, not just "Board Cleared."
+  scrolls vertically rather than needing a fixed footprint. Since a duplicated number always
+  matches its own copy regardless of position, Add Numbers is a guaranteed way to create a new
+  legal pair.
+- A starting board only needs *one* legal opening move, not a guaranteed full clear — genuine dead
+  ends (rare, since Add Numbers always creates a new pair) end an attempt in "No More Matches" as a
+  completed-but-uncleared result, not just "Board Cleared."
 - Hint highlights one real legal pair (no guessing); Undo restores an exact removal. Score is
   secondary and only shown on Results; using Add Numbers costs points but never disqualifies a
   Clean result.

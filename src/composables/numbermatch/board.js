@@ -1,90 +1,22 @@
-// Pure board/matching/path logic (SPEC §3, §5-7) — no Vue, no storage.
+// Pure board/matching logic — no Vue, no storage.
 //
 // A game state is `{ cols, cells }`: `cells` is a flat, row-major array of
 // length `rows * cols` (rows derived as cells.length / cols). A cell holds
 // a digit 1-9, or `null` for an empty (removed) cell. Removed cells are
-// never spliced out — SPEC §4's "Stable positions are important for
-// planning" — so every index keeps its meaning for the life of the board.
-
-function rowOf(index, cols) {
-  return Math.floor(index / cols)
-}
-
-function colOf(index, cols) {
-  return index % cols
-}
+// never spliced out — positions stay stable for the life of the board, so
+// every index keeps its meaning.
+//
+// v2: any two matching numbers anywhere on the board can be removed — no
+// adjacency/path requirement. The original spec required a connected path
+// (row/column/diagonal/reading-order), matching-style-puzzle rules
+// borrowed loosely from Mahjong Solitaire. User feedback after playing:
+// that felt arbitrary and confusing ("6+4 blocked, but the same 6 with a
+// different 4 works fine") for what's meant to be a simple, addictive
+// "Make 10" game (https://artfulmath.com/make-10-game/), where position
+// never matters — only the numbers do. See Number-Match-SPEC.md §34.
 
 export function isNumericMatch(a, b) {
   return a === b || a + b === 10
-}
-
-// Same row, every cell strictly between them (in that row) is empty.
-export function isHorizontalClear(cells, cols, i, j) {
-  if (rowOf(i, cols) !== rowOf(j, cols)) return false
-  const lo = Math.min(i, j)
-  const hi = Math.max(i, j)
-  for (let k = lo + 1; k < hi; k++) {
-    if (cells[k] !== null) return false
-  }
-  return true
-}
-
-// Same column, every cell strictly between them (down that column) is empty.
-export function isVerticalClear(cells, cols, i, j) {
-  if (colOf(i, cols) !== colOf(j, cols)) return false
-  const lo = Math.min(i, j)
-  const hi = Math.max(i, j)
-  for (let k = lo + cols; k < hi; k += cols) {
-    if (cells[k] !== null) return false
-  }
-  return true
-}
-
-// A "true diagonal" (SPEC §5): equal row and column distance. Every cell
-// strictly between them along that diagonal is empty.
-export function isDiagonalClear(cells, cols, i, j) {
-  const ri = rowOf(i, cols)
-  const ci = colOf(i, cols)
-  const rj = rowOf(j, cols)
-  const cj = colOf(j, cols)
-  const dr = rj - ri
-  const dc = cj - ci
-  if (dr === 0 || Math.abs(dr) !== Math.abs(dc)) return false
-  const stepR = dr > 0 ? 1 : -1
-  const stepC = dc > 0 ? 1 : -1
-  const steps = Math.abs(dr)
-  for (let s = 1; s < steps; s++) {
-    const idx = (ri + stepR * s) * cols + (ci + stepC * s)
-    if (cells[idx] !== null) return false
-  }
-  return true
-}
-
-// SPEC §6: treat the board as one flattened row-major sequence — every
-// cell strictly between the two flat indices is empty, regardless of row
-// boundaries. This is what lets a match "wrap" from the end of one row to
-// the start of another.
-export function isSequentialClear(cells, i, j) {
-  const lo = Math.min(i, j)
-  const hi = Math.max(i, j)
-  for (let k = lo + 1; k < hi; k++) {
-    if (cells[k] !== null) return false
-  }
-  return true
-}
-
-// Split out from isLegalPair so the game layer can tell a player *why* a
-// tap failed: two numbers that don't add up (isNumericMatch false) vs. two
-// numbers that do match but have no clear path (this false) are different
-// situations, and were previously indistinguishable from the outside —
-// see useNumberMatchGame.js's tapCell.
-export function isConnected(state, i, j) {
-  return (
-    isHorizontalClear(state.cells, state.cols, i, j) ||
-    isVerticalClear(state.cells, state.cols, i, j) ||
-    isDiagonalClear(state.cells, state.cols, i, j) ||
-    isSequentialClear(state.cells, i, j)
-  )
 }
 
 export function isLegalPair(state, i, j) {
@@ -92,8 +24,7 @@ export function isLegalPair(state, i, j) {
   const a = state.cells[i]
   const b = state.cells[j]
   if (a === null || b === null) return false
-  if (!isNumericMatch(a, b)) return false
-  return isConnected(state, i, j)
+  return isNumericMatch(a, b)
 }
 
 // O(n^2) over occupied cells — boards stay small enough (even after several
@@ -123,9 +54,9 @@ export function removePair(state, i, j) {
   return { ...state, cells }
 }
 
-// SPEC §11: every currently-occupied value, in reading order, appended as
-// new cells at the end of the logical board (padded to a whole number of
-// rows so rendering never has a partial trailing row).
+// Every currently-occupied value, in reading order, appended as new cells
+// at the end of the logical board (padded to a whole number of rows so
+// rendering never has a partial trailing row).
 export function appendRemainingNumbers(state) {
   const remaining = state.cells.filter((v) => v !== null)
   const cells = state.cells.concat(remaining)

@@ -56,26 +56,18 @@ describe('useNumberMatchGame', () => {
     expect(game.mistakes.value).toBe(1)
   })
 
-  it('tapping numbers that do not add up flags the reason as "mismatch"', () => {
+  it('matches two numbers regardless of how far apart they are on the board', () => {
+    // The exact case a user reported as a bug: "6+4 blocked, but the same 6
+    // with a different, closer 4 works" — position must never matter.
     const game = useNumberMatchGame()
     game.start('easy', 1)
-    game.boardState.value = { cols: 2, cells: [3, 4, 5, 5] }
+    game.boardState.value = { cols: 6, cells: [6, 9, 9, 9, 9, 4] }
 
     game.tapCell(0)
-    game.tapCell(1) // 3+4=7, not a numeric match at all
-    expect(game.invalidFlash.value).toEqual({ pair: [0, 1], reason: 'mismatch' })
-  })
-
-  it('tapping a numerically valid pair with no clear path flags the reason as "blocked"', () => {
-    const game = useNumberMatchGame()
-    game.start('easy', 1)
-    // 3 and 7 add up to 10, but 5 sits directly between them (SPEC §5 example).
-    game.boardState.value = { cols: 4, cells: [3, 5, null, 7] }
-
-    game.tapCell(0)
-    game.tapCell(3)
-    expect(game.boardState.value.cells).toEqual([3, 5, null, 7]) // unchanged
-    expect(game.invalidFlash.value).toEqual({ pair: [0, 3], reason: 'blocked' })
+    game.tapCell(5)
+    expect(game.boardState.value.cells[0]).toBe(null)
+    expect(game.boardState.value.cells[5]).toBe(null)
+    expect(game.mistakes.value).toBe(0)
   })
 
   it('tapping the selected cell again deselects without counting a Move', () => {
@@ -124,18 +116,20 @@ describe('useNumberMatchGame', () => {
   it('is Game Over (finished, not cleared) when no legal pair exists and Add Numbers is exhausted', () => {
     const game = useNumberMatchGame()
     game.start('easy', 1)
-    // [1,2,3,4] has no legal pair, and repeatedly doubling it via Add
-    // Numbers never creates one either (verified: every identical-value
-    // pair this produces always has an occupied cell blocking every path).
-    game.boardState.value = { cols: 2, cells: [1, 2, 3, 4] }
-    for (let i = 0; i < 4; i++) game.addNumbers() // exhausts easy's 4 uses
+    game.addNumbersUsed.value = 4 // exhaust easy's 4 uses directly, for a controlled scenario
+    // One legal pair (6+4) to remove; what's left (1, 2) is a genuine dead end.
+    game.boardState.value = { cols: 4, cells: [6, 4, 1, 2] }
 
+    game.tapCell(0)
+    game.tapCell(1)
+
+    expect(game.boardState.value.cells).toEqual([null, null, 1, 2])
     expect(game.addNumbersRemaining.value).toBe(0)
     expect(game.status.value).toBe('finished')
     expect(game.results.value.cleared).toBe(false)
   })
 
-  it('Add Numbers appends the remaining values and clears Undo history', () => {
+  it('Add Numbers appends the remaining values in reading order and clears Undo history', () => {
     const game = useNumberMatchGame()
     game.start('easy', 1)
     game.boardState.value = { cols: 2, cells: [1, 2, 3, 4] }
@@ -147,6 +141,19 @@ describe('useNumberMatchGame', () => {
     expect(game.addNumbersUsed.value).toBe(1)
     expect(game.boardState.value.cells.slice(4, 8)).toEqual([1, 2, 3, 4])
     expect(game.moveHistory.value).toEqual([])
+  })
+
+  it('Add Numbers always creates at least one legal pair (every duplicated value now matches itself)', () => {
+    // A direct consequence of removing the path requirement: since a
+    // duplicated value always matches its own copy regardless of position,
+    // Add Numbers can no longer "fail" to unstick a stalled board.
+    const game = useNumberMatchGame()
+    game.start('easy', 1)
+    game.boardState.value = { cols: 2, cells: [1, 2, 3, 4] } // no legal pair at all
+    expect(game.stalled.value).toBe(true)
+
+    game.addNumbers()
+    expect(game.stalled.value).toBe(false)
   })
 
   it('Undo restores both cells of the most recent removal exactly', () => {

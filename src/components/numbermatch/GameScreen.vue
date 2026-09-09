@@ -21,14 +21,13 @@
       </div>
 
       <p v-if="stalled" class="stalled-banner">No matches available — try Add Numbers, Hint or Undo.</p>
-      <p v-if="invalidMessage" class="invalid-banner">{{ invalidMessage }}</p>
 
       <NumberBoard
         :cols="boardState.cols"
         :cells="boardState.cells"
         :selected="selected"
         :hint-pair="hintPair || []"
-        :invalid-pair="invalidFlash?.pair || []"
+        :invalid-pair="invalidFlash || []"
         @tap="handleTap"
       />
 
@@ -135,16 +134,6 @@ const formattedTime = computed(() => {
   const m = Math.floor(totalSeconds / 60)
   const s = totalSeconds % 60
   return `${m}:${String(s).padStart(2, '0')}`
-})
-
-// Distinguishes "these two numbers don't add up" from "they do, but nothing
-// connects them right now" — previously both looked like the same generic
-// failure, which read as a math bug rather than the intended path rule.
-const invalidMessage = computed(() => {
-  if (!invalidFlash.value) return null
-  return invalidFlash.value.reason === 'blocked'
-    ? 'Blocked — no clear path connects them right now'
-    : 'Not a valid pair'
 })
 
 // SPEC §23: autosave after removal, invalid completed Move, Add Numbers,
@@ -323,8 +312,7 @@ watch(status, (val) => {
   color: var(--text);
 }
 
-.stalled-banner,
-.invalid-banner {
+.stalled-banner {
   width: 100%;
   max-width: 480px;
   margin: 0;

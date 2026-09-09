@@ -554,6 +554,11 @@ Not v1:
 
 ## 33. Implementation note: distinguishing "not a pair" from "blocked"
 
+**Superseded by §34.** After shipping this fix, further playtesting feedback was that the
+connection-rule concept itself (§5-§7) was the wrong design for this game, not just under-explained
+— see §34. The path/connection system this note describes, and the `isConnected`/`reason`
+machinery it added, were removed entirely in that pass. Kept here for the historical record.
+
 Added after user playtesting reported taps on numerically-valid pairs (e.g. `5+5`, `6+4`) "not
 always working," suspecting a math bug. Investigation (an independent brute-force reference
 implementation of §5/§6's connection rules, cross-checked against the real code across 670,000+
@@ -576,3 +581,47 @@ clear path. Fixed by distinguishing the two:
 - How to Play (AboutPage.vue) gained an explicit note next to the existing "3 · · 7" / "3 · 5 · 7"
   example explaining that a blocked-but-numerically-valid pair is expected behavior, and its
   practice board now surfaces the same two distinct messages.
+
+---
+
+## 34. v2: position never matters — the connection rule is removed
+
+Further user feedback after §33's fix: even with clearer messaging, the connection-rule concept
+itself (§5 "Connection rules", §6 "Sequential row-wrap", §7 "Legal-pair function") felt arbitrary
+and unfun for what's meant to be a simple, addictive game — explicitly compared to the
+[Make 10 game](https://artfulmath.com/make-10-game/), where any two numbers that add up to 10
+clear, full stop, regardless of where they sit on the board. The reported example: tapping a `6`
+and a `4` failed as "blocked," but the *same* `6` matched with a *different* `4` elsewhere worked —
+correct under the old path rule, but indistinguishable from a bug to a player, because in this
+genre position isn't supposed to matter at all.
+
+**Decision: remove §5/§6/§7 entirely.** A pair is legal whenever the two numbers are identical or
+add up to 10 (§3's numeric rule) — nothing else. No row/column/diagonal/reading-order requirement,
+no "clear path" concept, no `isConnected`. This also retires §33's `reason`
+(`'mismatch'`/`'blocked'`) distinction along with it: there is only one way for a tap to fail now
+(the numbers don't match), so the original single generic "Invalid pair" feedback is correct again
+— §33's problem doesn't exist once there's nothing to disambiguate.
+
+What this changes:
+
+- **Board/matching logic** (composables/numbermatch/board.js): `isHorizontalClear`,
+  `isVerticalClear`, `isDiagonalClear`, `isSequentialClear`, and `isConnected` are deleted.
+  `isLegalPair(state, i, j)` is now just `isNumericMatch(a, b)` plus the existing non-null/i≠j
+  guards. `findLegalPairs`, `removePair`, `appendRemainingNumbers` are unchanged — they never
+  depended on path logic themselves.
+- **Add Numbers is now a guaranteed unstick.** A direct, welcome side effect: since a duplicated
+  value always matches its own copy regardless of where either one lands, Add Numbers can no
+  longer fail to create at least one new legal pair (the old path rule meant a fresh duplicate
+  could still be blocked). A truly stalled board now only happens through the player's own
+  removals, and only when Add Numbers is also exhausted.
+- **Difficulty is unchanged in shape** (§9's six tiers, same board sizes and Add Numbers counts) —
+  removing the path requirement makes every tier meaningfully easier in practice, which matches the
+  "easy and addictive" goal directly; difficulty was never meant to come from path geometry, only
+  from board size and how sparing Add Numbers is.
+- **How to Play** (AboutPage.vue) dropped the connection-rule explanation and the blocked-path
+  example entirely, replaced with a one-line rule ("tap any two numbers, anywhere, that are
+  identical or add up to 10") and a practice board that deliberately places matching numbers far
+  apart with unrelated numbers between them, to demonstrate that position never matters.
+- §4's "Board" and §8's "Interaction" (stable positions, tap-to-select, brief feedback on an
+  invalid pair, Mistakes +1) are otherwise unaffected — only what counts as a *legal* pair changed,
+  not how tapping, Undo, Hint, Add Numbers, or scoring work.
