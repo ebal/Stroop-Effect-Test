@@ -28,6 +28,7 @@ population average or another player.
 | [Sequence Memory](#sequence-memory) | Visuospatial sequence memory |
 | [Switch Trail](#switch-trail) | Cognitive flexibility |
 | [Memory Pairs](#memory-pairs) | Visual/spatial associative memory |
+| [Marble Jump](#marble-jump) | Planning / spatial reasoning |
 
 Detailed rules, scoring formulas and design rationale for each game live in its own `*-SPEC.md`
 file, linked from each section below.
@@ -175,16 +176,34 @@ recall.
 
 See [`Memory-Pairs-SPEC.md`](./Memory-Pairs-SPEC.md) for the full design rationale.
 
+## Marble Jump
+
+A single-player peg-solitaire puzzle on a hexagonal/triangular board: jump one marble over an
+adjacent marble into the empty hole directly beyond it, removing the jumped marble, until no legal
+jumps remain. The goal is to leave as few marbles as possible.
+
+- Four difficulties (Easy/Medium/Hard/Extreme), scaling purely through triangular board size
+  (10/15/21/28 holes) — the jump rule itself never changes.
+- A small curated set of puzzles per difficulty, each solver-verified so the displayed
+  `optimalRemaining` (and the "Optimal!" result) is always a proven minimum, never a guess.
+- Score is hidden during play — only Marbles Left, Moves and Time show on the board, matching the
+  spec's "test planning, not scoring pressure" intent. Score, Undos and Hints appear on Results.
+- Undo (unlimited, exact-state) and Restart (reloads the original puzzle), plus autosave/Continue.
+- No in-game Hint in v1 — omitted rather than shipping a weak one.
+
+See [`Marble-Jump-SPEC.md`](./Marble-Jump-SPEC.md) for the full design rationale.
+
 ## Benchmark Mode
 
-Fixed-difficulty runs of seven of the eight games, reachable via **Run a Benchmark** below the game
+Fixed-difficulty runs of seven of the nine games, reachable via **Run a Benchmark** below the game
 grid, so a result today is comparable to one from months ago rather than a personal best set on
 whatever difficulty you happened to pick. Starting a benchmark locks the configuration: Stroop
 (Medium, Color Match), Schulte (5×5 Classic), N-Back (2-Back), SET (Medium), Sequence Memory
 (Medium), Switch Trail (Medium, 16 targets), Memory Pairs (Medium, 8 pairs).
 
-- **Sudoku is excluded.** Puzzle difficulty genuinely varies within one labeled tier, so a fixed
-  Sudoku benchmark would mostly measure which puzzle you got, not your performance.
+- **Sudoku and Marble Jump are excluded.** Puzzle difficulty genuinely varies within one labeled
+  tier for both, so a fixed benchmark would mostly measure which puzzle you got, not your
+  performance.
 - A benchmark run also counts as a normal play session, recorded in that game's usual history and
   stats as well as a separate benchmark history.
 - Every benchmark session is stamped with a version number, so if these fixed configurations ever
@@ -332,10 +351,10 @@ Compose picks up `.env` automatically from then on, no need to pass anything on 
 
 ## Project structure
 
-All eight games live in one Vue app, chosen from a landing screen (`GameChooser.vue`) in
+All nine games live in one Vue app, chosen from a landing screen (`GameChooser.vue`) in
 `App.vue`. Stroop's files sit flat under `components/`, `composables/` and `constants/`; the other
-seven each have their own subfolder (`schulte/`, `nback/`, `sudoku/`, `set/`, `sequence-memory/`,
-`switchtrail/`, `memorypairs/`), all with the same shape: a `MainMenu`/`AboutPage`/`HistoryPage`/
+eight each have their own subfolder (`schulte/`, `nback/`, `sudoku/`, `set/`, `sequence-memory/`,
+`switchtrail/`, `memorypairs/`, `marblejump/`), all with the same shape: a `MainMenu`/`AboutPage`/`HistoryPage`/
 `GameScreen`/`ResultsScreen` set of components, a `useXGame.js` state machine plus storage/stats
 composables, and a `difficulties.js` constants file. Benchmark Mode, the Activity dashboard and
 Data Management are cross-cutting rather than per-game, so they live top-level alongside
@@ -375,7 +394,7 @@ npm test
 ```
 
 Runs the automated test suite ([Vitest](https://vitest.dev/)): deterministic unit tests for the
-actual game math and generation logic across all eight games (trial/board/sequence generation,
+actual game math and generation logic across all nine games (trial/board/sequence generation,
 validators, difficulty classification, scoring, statistics), plus the shared session model,
 Benchmark, and Baseline logic. No component/DOM testing yet, everything covered so far is plain JS
 logic, testable without mounting a Vue component. Each tested module has a co-located `*.test.js`

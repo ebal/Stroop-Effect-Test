@@ -3,8 +3,8 @@ import { METRIC_VERSIONS } from './metricVersions.js'
 import { BENCHMARK_CONFIGS } from './benchmark.js'
 
 describe('METRIC_VERSIONS', () => {
-  it('covers every game that participates in Benchmark, plus Sudoku (Benchmark-excluded but still a game)', () => {
-    const expectedGames = [...Object.keys(BENCHMARK_CONFIGS), 'sudoku']
+  it('covers every game that participates in Benchmark, plus Sudoku and Marble Jump (Benchmark-excluded but still games)', () => {
+    const expectedGames = [...Object.keys(BENCHMARK_CONFIGS), 'sudoku', 'marblejump']
     for (const game of expectedGames) {
       expect(METRIC_VERSIONS).toHaveProperty(game)
     }

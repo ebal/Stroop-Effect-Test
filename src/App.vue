@@ -260,6 +260,34 @@
         @history="memoryPairsScreen = 'history'"
       />
     </template>
+
+    <template v-else-if="activeGame === 'marblejump'">
+      <MarbleJumpMainMenu
+        v-if="marbleJumpScreen === 'menu'"
+        @start="handleMarbleJumpStart"
+        @continue="handleMarbleJumpContinue"
+        @about="marbleJumpScreen = 'about'"
+        @history="marbleJumpScreen = 'history'"
+        @exit="activeGame = null"
+      />
+      <MarbleJumpAboutPage v-else-if="marbleJumpScreen === 'about'" @menu="marbleJumpScreen = 'menu'" />
+      <MarbleJumpHistoryPage v-else-if="marbleJumpScreen === 'history'" @menu="marbleJumpScreen = 'menu'" />
+      <MarbleJumpGameScreen
+        v-else-if="marbleJumpScreen === 'game'"
+        :difficulty-key="marbleJumpDifficulty"
+        :continue-game="marbleJumpContinue"
+        @finished="handleMarbleJumpFinished"
+        @exit="marbleJumpScreen = 'menu'; benchmarkActive = false"
+      />
+      <MarbleJumpResultsScreen
+        v-else-if="marbleJumpScreen === 'results'"
+        :results="marbleJumpResults"
+        :difficulty-key="marbleJumpDifficulty"
+        @replay="handleMarbleJumpStart(marbleJumpDifficulty)"
+        @menu="marbleJumpScreen = 'menu'"
+        @history="marbleJumpScreen = 'history'"
+      />
+    </template>
   </div>
 </template>
 
@@ -326,6 +354,12 @@ const SetAboutPage = lazy(() => import('./components/set/AboutPage.vue'))
 const SetHistoryPage = lazy(() => import('./components/set/HistoryPage.vue'))
 const SetGameScreen = lazy(() => import('./components/set/GameScreen.vue'))
 const SetResultsScreen = lazy(() => import('./components/set/ResultsScreen.vue'))
+
+const MarbleJumpMainMenu = lazy(() => import('./components/marblejump/MainMenu.vue'))
+const MarbleJumpAboutPage = lazy(() => import('./components/marblejump/AboutPage.vue'))
+const MarbleJumpHistoryPage = lazy(() => import('./components/marblejump/HistoryPage.vue'))
+const MarbleJumpGameScreen = lazy(() => import('./components/marblejump/GameScreen.vue'))
+const MarbleJumpResultsScreen = lazy(() => import('./components/marblejump/ResultsScreen.vue'))
 
 const SequenceMainMenu = lazy(() => import('./components/sequence-memory/MainMenu.vue'))
 const SequenceAboutPage = lazy(() => import('./components/sequence-memory/AboutPage.vue'))
@@ -662,6 +696,31 @@ function handleMemoryPairsFinished(results) {
     benchmarkFeedback.value = { game: 'memorypairs', message: describeBenchmarkFeedback('memorypairs', priorBaseline, session.primaryMetric) }
     benchmarkActive.value = false
   }
+}
+
+// --- Marble Jump --- not part of Benchmark v1 (SPEC §28), so unlike the
+// games above there is no benchmarkActive/recordBenchmarkSession branch here
+// — same as Sudoku, the other benchmark-excluded game.
+const marbleJumpScreen = ref('menu')
+const marbleJumpDifficulty = ref(null)
+const marbleJumpContinue = ref(false)
+const marbleJumpResults = ref(null)
+
+function handleMarbleJumpStart(difficultyKey) {
+  marbleJumpDifficulty.value = difficultyKey
+  marbleJumpContinue.value = false
+  marbleJumpScreen.value = 'game'
+}
+
+function handleMarbleJumpContinue() {
+  marbleJumpContinue.value = true
+  marbleJumpScreen.value = 'game'
+}
+
+function handleMarbleJumpFinished(results) {
+  marbleJumpResults.value = results
+  marbleJumpDifficulty.value = results.difficulty
+  marbleJumpScreen.value = 'results'
 }
 </script>
 

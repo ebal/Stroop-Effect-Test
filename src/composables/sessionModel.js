@@ -26,6 +26,7 @@ import { useSetStats } from './set/useSetStats.js'
 import { useMemoryStats } from './sequence-memory/useMemoryStats.js'
 import { useSwitchTrailStats } from './switchtrail/useSwitchTrailStats.js'
 import { useMemoryPairsStats } from './memorypairs/useMemoryPairsStats.js'
+import { useMarbleJumpStats } from './marblejump/useMarbleJumpStats.js'
 import { METRIC_VERSIONS } from '../constants/metricVersions.js'
 
 export function mapStroopEntry(entry, mode, difficultyKey) {
@@ -200,8 +201,28 @@ export function mapMemoryPairsEntry(entry) {
   }
 }
 
+export function mapMarbleJumpEntry(entry) {
+  return {
+    id: entry.puzzleId ? `marblejump:${entry.puzzleId}:${entry.completedAt}` : `marblejump:${entry.difficulty}:${entry.completedAt}`,
+    game: 'marblejump',
+    difficulty: entry.difficulty,
+    sessionType: 'play',
+    startedAt: null,
+    completedAt: entry.completedAt,
+    duration: entry.completionTime,
+    completed: true,
+    primaryMetric: entry.remainingMarbles, // SPEC §12: Marbles Remaining is the primary metric, lower is better
+    accuracy: null, // Marble Jump has no accuracy-percentage concept
+    medianRT: null, // no per-move response time is tracked
+    mistakes: null, // no illegal-tap/mistake concept — only legal moves are ever applied
+    hints: entry.hints,
+    metricVersion: entry.metricVersion ?? METRIC_VERSIONS.marblejump,
+    appVersion: entry.appVersion ?? null,
+  }
+}
+
 // Touches localStorage (via each game's own history/stats composable) to
-// aggregate every session across all eight games into one common-shape list,
+// aggregate every session across all nine games into one common-shape list,
 // sorted oldest first. Nothing here is unit-tested directly — correctness
 // follows from the pure mapper functions above (which are) plus each game's
 // already-established getHistory()/getDerivedStats() reads.
@@ -259,6 +280,9 @@ export function getAllSessions() {
 
   const memoryPairsStats = useMemoryPairsStats()
   for (const entry of memoryPairsStats.getHistory('all')) sessions.push(mapMemoryPairsEntry(entry))
+
+  const marbleJumpStats = useMarbleJumpStats()
+  for (const entry of marbleJumpStats.getHistory('all')) sessions.push(mapMarbleJumpEntry(entry))
 
   sessions.sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt))
   return sessions
