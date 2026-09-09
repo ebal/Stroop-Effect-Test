@@ -149,14 +149,17 @@ See [`Sequence-Memory-SPEC.md`](./Sequence-Memory-SPEC.md) for the full design r
 ![Switch Trail](docs/screenshots/brain_07_switch.png)
 
 A Trail Making-inspired task-switching game: tap scattered targets in alternating order (1, A, 2,
-B, 3, C...) before time runs out. Targets are placed once per round and never move, so it measures
-visual search and switching, not memory of positions.
+B, 3, C...). Targets are placed once per round and never move, so it measures visual search and
+switching, not memory of positions.
 
 - Four difficulties. The last, Extreme, reshuffles every remaining target's position after each
   correct tap. Difficulty comes from density and switching, never tiny targets.
 - Board generation guarantees no overlapping or impractical targets.
 - A wrong tap costs points and flashes red but never ends the round.
-- Optional Random Color variant, available at every difficulty and tracked separately.
+- Two independent, combinable variant checkboxes, each tracked separately: **Random Color** (a
+  random background color per target) and **Untimed** (added for stress-free play — no clock, no
+  live Score, the round just ends whenever the whole trail is completed instead of at a time
+  limit).
 
 See [`Switch-Trail-SPEC.md`](./Switch-Trail-SPEC.md) for the full design rationale.
 

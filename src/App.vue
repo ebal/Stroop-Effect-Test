@@ -213,12 +213,14 @@
         v-else-if="switchtrailScreen === 'history'"
         :initial-difficulty="switchtrailDifficulty || 'easy'"
         :initial-color-mode="switchtrailColorMode"
+        :initial-untimed="switchtrailUntimed"
         @menu="switchtrailScreen = 'menu'"
       />
       <SwitchTrailGameScreen
         v-else-if="switchtrailScreen === 'game'"
         :difficulty-key="switchtrailDifficulty"
         :color-mode="switchtrailColorMode"
+        :untimed="switchtrailUntimed"
         @finished="handleSwitchTrailFinished"
         @exit="switchtrailScreen = 'menu'; benchmarkActive = false"
       />
@@ -227,7 +229,8 @@
         :results="switchtrailResults"
         :difficulty-key="switchtrailDifficulty"
         :color-mode="switchtrailColorMode"
-        @replay="handleSwitchTrailStart({ difficultyKey: switchtrailDifficulty, colorMode: switchtrailColorMode })"
+        :untimed="switchtrailUntimed"
+        @replay="handleSwitchTrailStart({ difficultyKey: switchtrailDifficulty, colorMode: switchtrailColorMode, untimed: switchtrailUntimed })"
         @menu="switchtrailScreen = 'menu'"
         @history="handleSwitchTrailHistory"
       />
@@ -716,17 +719,20 @@ function handleSequenceFinished(results) {
 const switchtrailScreen = ref('menu')
 const switchtrailDifficulty = ref(null)
 const switchtrailColorMode = ref(false)
+const switchtrailUntimed = ref(false)
 const switchtrailResults = ref(null)
 
-function handleSwitchTrailStart({ difficultyKey, colorMode }) {
+function handleSwitchTrailStart({ difficultyKey, colorMode, untimed }) {
   switchtrailDifficulty.value = difficultyKey
   switchtrailColorMode.value = !!colorMode
+  switchtrailUntimed.value = !!untimed
   switchtrailScreen.value = 'game'
 }
 
 function handleSwitchTrailHistory(payload) {
   if (payload?.difficultyKey) switchtrailDifficulty.value = payload.difficultyKey
   if (payload?.colorMode !== undefined) switchtrailColorMode.value = payload.colorMode
+  if (payload?.untimed !== undefined) switchtrailUntimed.value = payload.untimed
   switchtrailScreen.value = 'history'
 }
 
