@@ -141,6 +141,7 @@ const GAME_LABELS = {
   switchtrail: 'Switch Trail',
   memorypairs: 'Memory Pairs',
   marblejump: 'Marble Jump',
+  mentalrotation: 'Mental Rotation',
 }
 function gameLabel(game) {
   return GAME_LABELS[game] || game

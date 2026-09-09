@@ -288,6 +288,32 @@
         @history="marbleJumpScreen = 'history'"
       />
     </template>
+
+    <template v-else-if="activeGame === 'mentalrotation'">
+      <MentalRotationMainMenu
+        v-if="mentalRotationScreen === 'menu'"
+        @start="handleMentalRotationStart"
+        @about="mentalRotationScreen = 'about'"
+        @history="mentalRotationScreen = 'history'"
+        @exit="activeGame = null"
+      />
+      <MentalRotationAboutPage v-else-if="mentalRotationScreen === 'about'" @menu="mentalRotationScreen = 'menu'" />
+      <MentalRotationHistoryPage v-else-if="mentalRotationScreen === 'history'" @menu="mentalRotationScreen = 'menu'" />
+      <MentalRotationGameScreen
+        v-else-if="mentalRotationScreen === 'game'"
+        :difficulty-key="mentalRotationDifficulty"
+        @finished="handleMentalRotationFinished"
+        @exit="mentalRotationScreen = 'menu'; benchmarkActive = false"
+      />
+      <MentalRotationResultsScreen
+        v-else-if="mentalRotationScreen === 'results'"
+        :results="mentalRotationResults"
+        :difficulty-key="mentalRotationDifficulty"
+        @replay="handleMentalRotationStart(mentalRotationDifficulty)"
+        @menu="mentalRotationScreen = 'menu'"
+        @history="mentalRotationScreen = 'history'"
+      />
+    </template>
   </div>
 </template>
 
@@ -360,6 +386,12 @@ const MarbleJumpAboutPage = lazy(() => import('./components/marblejump/AboutPage
 const MarbleJumpHistoryPage = lazy(() => import('./components/marblejump/HistoryPage.vue'))
 const MarbleJumpGameScreen = lazy(() => import('./components/marblejump/GameScreen.vue'))
 const MarbleJumpResultsScreen = lazy(() => import('./components/marblejump/ResultsScreen.vue'))
+
+const MentalRotationMainMenu = lazy(() => import('./components/mentalrotation/MainMenu.vue'))
+const MentalRotationAboutPage = lazy(() => import('./components/mentalrotation/AboutPage.vue'))
+const MentalRotationHistoryPage = lazy(() => import('./components/mentalrotation/HistoryPage.vue'))
+const MentalRotationGameScreen = lazy(() => import('./components/mentalrotation/GameScreen.vue'))
+const MentalRotationResultsScreen = lazy(() => import('./components/mentalrotation/ResultsScreen.vue'))
 
 const SequenceMainMenu = lazy(() => import('./components/sequence-memory/MainMenu.vue'))
 const SequenceAboutPage = lazy(() => import('./components/sequence-memory/AboutPage.vue'))
@@ -721,6 +753,28 @@ function handleMarbleJumpFinished(results) {
   marbleJumpResults.value = results
   marbleJumpDifficulty.value = results.difficulty
   marbleJumpScreen.value = 'results'
+}
+
+// --- Mental Rotation --- not part of Benchmark v1 (SPEC §36), so like
+// Marble Jump and Sudoku there is no benchmarkActive/recordBenchmarkSession
+// branch here. GameScreen.vue itself calls recordStart/recordCompletion
+// (via useMentalRotationStats) — App.vue just routes screens.
+const mentalRotationScreen = ref('menu')
+const mentalRotationDifficulty = ref(null)
+const mentalRotationResults = ref(null)
+
+function handleMentalRotationStart(difficultyKey) {
+  mentalRotationDifficulty.value = difficultyKey
+  mentalRotationScreen.value = 'game'
+}
+
+function handleMentalRotationFinished(results) {
+  // Unlike Marble Jump/SET's results, useMentalRotationGame's `results` has
+  // no `difficulty` field (it never tracks one internally, matching Stroop's
+  // precedent) — mentalRotationDifficulty is already set from handleStart
+  // and doesn't change mid-round, so there's nothing to re-derive here.
+  mentalRotationResults.value = results
+  mentalRotationScreen.value = 'results'
 }
 </script>
 

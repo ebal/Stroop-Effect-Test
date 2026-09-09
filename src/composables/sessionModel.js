@@ -27,6 +27,7 @@ import { useMemoryStats } from './sequence-memory/useMemoryStats.js'
 import { useSwitchTrailStats } from './switchtrail/useSwitchTrailStats.js'
 import { useMemoryPairsStats } from './memorypairs/useMemoryPairsStats.js'
 import { useMarbleJumpStats } from './marblejump/useMarbleJumpStats.js'
+import { useMentalRotationStats } from './mentalrotation/useMentalRotationStats.js'
 import { METRIC_VERSIONS } from '../constants/metricVersions.js'
 
 export function mapStroopEntry(entry, mode, difficultyKey) {
@@ -221,8 +222,28 @@ export function mapMarbleJumpEntry(entry) {
   }
 }
 
+export function mapMentalRotationEntry(entry) {
+  return {
+    id: `mentalrotation:${entry.difficulty}:${entry.completedAt}`,
+    game: 'mentalrotation',
+    difficulty: entry.difficulty,
+    sessionType: 'play',
+    startedAt: null,
+    completedAt: entry.completedAt,
+    duration: entry.duration,
+    completed: true,
+    primaryMetric: entry.score,
+    accuracy: entry.accuracy,
+    medianRT: entry.medianRT,
+    mistakes: entry.wrong,
+    hints: null, // Mental Rotation has no hint concept
+    metricVersion: entry.metricVersion ?? METRIC_VERSIONS.mentalrotation,
+    appVersion: entry.appVersion ?? null,
+  }
+}
+
 // Touches localStorage (via each game's own history/stats composable) to
-// aggregate every session across all nine games into one common-shape list,
+// aggregate every session across all ten games into one common-shape list,
 // sorted oldest first. Nothing here is unit-tested directly — correctness
 // follows from the pure mapper functions above (which are) plus each game's
 // already-established getHistory()/getDerivedStats() reads.
@@ -283,6 +304,9 @@ export function getAllSessions() {
 
   const marbleJumpStats = useMarbleJumpStats()
   for (const entry of marbleJumpStats.getHistory('all')) sessions.push(mapMarbleJumpEntry(entry))
+
+  const mentalRotationStats = useMentalRotationStats()
+  for (const entry of mentalRotationStats.getHistory('all')) sessions.push(mapMentalRotationEntry(entry))
 
   sessions.sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt))
   return sessions
