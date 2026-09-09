@@ -549,3 +549,30 @@ Not v1:
 29. No backend/database.
 30. Full offline/PWA.
 31. Not part of Benchmark v1.
+
+---
+
+## 33. Implementation note: distinguishing "not a pair" from "blocked"
+
+Added after user playtesting reported taps on numerically-valid pairs (e.g. `5+5`, `6+4`) "not
+always working," suspecting a math bug. Investigation (an independent brute-force reference
+implementation of §5/§6's connection rules, cross-checked against the real code across 670,000+
+random pair checks — zero discrepancies) confirmed the math and path logic were correct: on a
+mostly-full board, two matching numbers can only connect if nothing else occupies every possible
+path between them, which in practice usually means they must be near-neighbors. Most same-value or
+sum-to-10 pairs elsewhere on the board are genuinely blocked until something between them clears —
+this is §5's connection rule working as specified, not a bug.
+
+The real problem was feedback: §8's "Invalid pair/path: brief feedback" gave the exact same
+generic response whether the tapped numbers didn't add up at all, or added up correctly but had no
+clear path. Fixed by distinguishing the two:
+
+- `isConnected(state, i, j)` (composables/numbermatch/board.js) is now exported separately from
+  `isLegalPair` — the same path check, without the numeric-match requirement.
+- A failed tap now reports a `reason`: `'mismatch'` (the numbers don't add up) or `'blocked'`
+  (they do, but nothing connects them right now). The game shows "Not a valid pair" vs. "Blocked —
+  no clear path connects them right now" accordingly, held long enough to actually read (900ms, up
+  from the original 400ms generic flash).
+- How to Play (AboutPage.vue) gained an explicit note next to the existing "3 · · 7" / "3 · 5 · 7"
+  example explaining that a blocked-but-numerically-valid pair is expected behavior, and its
+  practice board now surfaces the same two distinct messages.

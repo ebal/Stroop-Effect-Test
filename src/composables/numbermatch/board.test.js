@@ -5,6 +5,7 @@ import {
   isVerticalClear,
   isDiagonalClear,
   isSequentialClear,
+  isConnected,
   isLegalPair,
   findLegalPairs,
   removePair,
@@ -111,6 +112,21 @@ describe('isSequentialClear (row-wrap)', () => {
   it('false when an occupied cell lies strictly between the two flat indices', () => {
     const cells = [3, null, 5, null, 7]
     expect(isSequentialClear(cells, 0, 4)).toBe(false)
+  })
+})
+
+// isConnected is isLegalPair minus the numeric-match requirement — it's
+// what lets the game distinguish "not a valid pair" from "valid pair,
+// blocked path" for player feedback.
+describe('isConnected', () => {
+  it('is true for a connected pair regardless of whether the numbers match', () => {
+    const state = { cols: 4, cells: [3, null, null, 4] } // 3 and 4 don't match, but path is clear
+    expect(isConnected(state, 0, 3)).toBe(true)
+  })
+
+  it('is false when every path is blocked, regardless of whether the numbers match', () => {
+    const state = { cols: 4, cells: [3, 9, null, 4] } // blocked by 9, and 3+4 doesn't match either
+    expect(isConnected(state, 0, 3)).toBe(false)
   })
 })
 

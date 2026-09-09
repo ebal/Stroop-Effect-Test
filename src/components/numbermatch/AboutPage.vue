@@ -18,6 +18,16 @@
       <span class="blocked">✕ blocked by 5</span>
     </div>
 
+    <p class="intro note">
+      <strong>This isn't a bug:</strong> two numbers that add up correctly but aren't connected —
+      like the blocked 3 and 7 above — will always be refused, exactly like a pair that doesn't add
+      up at all. The game tells you which one happened: <strong>"Not a valid pair"</strong> means
+      the numbers themselves don't match; <strong>"Blocked"</strong> means they do match, but
+      nothing currently connects them. On a full board, only numbers that are immediate neighbors
+      (in a row, column, diagonal, or reading order) can ever connect — most same-value or
+      sum-to-10 pairs elsewhere on the board are blocked until something between them is cleared.
+    </p>
+
     <h2>Difficulty</h2>
     <p class="intro">
       Difficulty comes from board size and how few <strong>Add Numbers</strong> uses you get, never
@@ -37,9 +47,13 @@
     <p class="intro">Untimed, unscored — see the connection rule in action.</p>
 
     <div class="demo">
-      <p class="demo-feedback">
-        {{ demoRemaining }} number{{ demoRemaining === 1 ? '' : 's' }} left
-        <template v-if="demoCleared"> — cleared!</template>
+      <p class="demo-feedback" :class="{ blocked: demoMessage === 'blocked' }">
+        <template v-if="demoMessage === 'blocked'">Blocked — no clear path connects them right now</template>
+        <template v-else-if="demoMessage === 'mismatch'">Not a valid pair</template>
+        <template v-else>
+          {{ demoRemaining }} number{{ demoRemaining === 1 ? '' : 's' }} left
+          <template v-if="demoCleared"> — cleared!</template>
+        </template>
       </p>
       <NumberBoard
         class="practice-board"
@@ -59,7 +73,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import NumberBoard from './NumberBoard.vue'
-import { isLegalPair, removePair, remainingCount, isBoardCleared } from '../../composables/numbermatch/board.js'
+import { isLegalPair, isNumericMatch, removePair, remainingCount, isBoardCleared } from '../../composables/numbermatch/board.js'
 
 defineEmits(['menu'])
 
@@ -72,6 +86,7 @@ const PRACTICE_BOARD = { cols: 4, cells: [3, 5, 5, 7, 6, 4, 2, 8] }
 const demoState = ref({ ...PRACTICE_BOARD, cells: PRACTICE_BOARD.cells.slice() })
 const demoSelected = ref(null)
 const demoInvalid = ref(null)
+const demoMessage = ref(null) // 'blocked' | 'mismatch' | null
 let demoFlashTimeout = null
 
 const demoRemaining = computed(() => remainingCount(demoState.value))
@@ -81,6 +96,7 @@ function practiceTap(i) {
   if (demoCleared.value) return
   if (demoState.value.cells[i] === null) return
   demoInvalid.value = null
+  demoMessage.value = null
 
   if (demoSelected.value === i) {
     demoSelected.value = null
@@ -97,11 +113,15 @@ function practiceTap(i) {
   if (isLegalPair(demoState.value, a, b)) {
     demoState.value = removePair(demoState.value, a, b)
   } else {
+    // Same distinction the real game shows (SPEC clarification): a
+    // numerically valid but disconnected pair is "blocked", not a mismatch.
+    demoMessage.value = isNumericMatch(demoState.value.cells[a], demoState.value.cells[b]) ? 'blocked' : 'mismatch'
     demoInvalid.value = [a, b]
     clearTimeout(demoFlashTimeout)
     demoFlashTimeout = setTimeout(() => {
       demoInvalid.value = null
-    }, 400)
+      demoMessage.value = null
+    }, 900)
   }
   demoSelected.value = null
 }
@@ -110,6 +130,7 @@ function resetPracticeBoard() {
   demoState.value = { ...PRACTICE_BOARD, cells: PRACTICE_BOARD.cells.slice() }
   demoSelected.value = null
   demoInvalid.value = null
+  demoMessage.value = null
 }
 </script>
 
@@ -161,6 +182,14 @@ h2 {
   font-weight: 700;
 }
 
+.intro.note {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin: 0.5rem 0 1.5rem;
+  font-size: 0.9rem;
+}
+
 .demo {
   background: var(--surface);
   border-radius: 16px;
@@ -177,6 +206,10 @@ h2 {
   color: var(--text-dim);
   text-align: center;
   font-weight: 600;
+}
+
+.demo-feedback.blocked {
+  color: var(--wrong);
 }
 
 .practice-board {

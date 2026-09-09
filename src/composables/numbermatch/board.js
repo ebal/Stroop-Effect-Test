@@ -73,18 +73,27 @@ export function isSequentialClear(cells, i, j) {
   return true
 }
 
-export function isLegalPair(state, i, j) {
-  if (i === j) return false
-  const a = state.cells[i]
-  const b = state.cells[j]
-  if (a === null || b === null) return false
-  if (!isNumericMatch(a, b)) return false
+// Split out from isLegalPair so the game layer can tell a player *why* a
+// tap failed: two numbers that don't add up (isNumericMatch false) vs. two
+// numbers that do match but have no clear path (this false) are different
+// situations, and were previously indistinguishable from the outside —
+// see useNumberMatchGame.js's tapCell.
+export function isConnected(state, i, j) {
   return (
     isHorizontalClear(state.cells, state.cols, i, j) ||
     isVerticalClear(state.cells, state.cols, i, j) ||
     isDiagonalClear(state.cells, state.cols, i, j) ||
     isSequentialClear(state.cells, i, j)
   )
+}
+
+export function isLegalPair(state, i, j) {
+  if (i === j) return false
+  const a = state.cells[i]
+  const b = state.cells[j]
+  if (a === null || b === null) return false
+  if (!isNumericMatch(a, b)) return false
+  return isConnected(state, i, j)
 }
 
 // O(n^2) over occupied cells — boards stay small enough (even after several

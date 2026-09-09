@@ -56,6 +56,28 @@ describe('useNumberMatchGame', () => {
     expect(game.mistakes.value).toBe(1)
   })
 
+  it('tapping numbers that do not add up flags the reason as "mismatch"', () => {
+    const game = useNumberMatchGame()
+    game.start('easy', 1)
+    game.boardState.value = { cols: 2, cells: [3, 4, 5, 5] }
+
+    game.tapCell(0)
+    game.tapCell(1) // 3+4=7, not a numeric match at all
+    expect(game.invalidFlash.value).toEqual({ pair: [0, 1], reason: 'mismatch' })
+  })
+
+  it('tapping a numerically valid pair with no clear path flags the reason as "blocked"', () => {
+    const game = useNumberMatchGame()
+    game.start('easy', 1)
+    // 3 and 7 add up to 10, but 5 sits directly between them (SPEC §5 example).
+    game.boardState.value = { cols: 4, cells: [3, 5, null, 7] }
+
+    game.tapCell(0)
+    game.tapCell(3)
+    expect(game.boardState.value.cells).toEqual([3, 5, null, 7]) // unchanged
+    expect(game.invalidFlash.value).toEqual({ pair: [0, 3], reason: 'blocked' })
+  })
+
   it('tapping the selected cell again deselects without counting a Move', () => {
     const game = useNumberMatchGame()
     game.start('easy', 1)
