@@ -30,8 +30,8 @@
           <path fill-rule="evenodd" fill="currentColor" d="M8 1L1 7V15H15V7Z M6.5 15V9H9.5V15Z" />
         </svg>
       </button>
-      <button class="about-link" @click="$emit('about')">New here? How to Play →</button>
-      <button class="about-link" @click="$emit('history')">Score History →</button>
+      <button class="about-link" @click="$emit('about')">Learn to Play</button>
+      <button class="about-link" @click="$emit('history')">Scores</button>
     </div>
   </div>
 </template>
